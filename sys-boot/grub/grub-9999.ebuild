@@ -6,11 +6,14 @@ EAPI=7
 CROS_WORKON_PROJECT="flatcar-linux/grub"
 CROS_WORKON_REPO="git://github.com"
 GRUB_AUTOGEN=1  # We start from Git, so always autogen.
+GRUB_BOOTSTRAP=1
+GRUB_AUTORECONF=1
 
 if [[ ${PV} == 9999 ]]; then
 	KEYWORDS="~amd64 ~arm64 ~x86"
 else
-	CROS_WORKON_COMMIT="ae94b97be2b81b625d6af6654d3ed79078b50ff6"  # flatcar-master
+	# CROS_WORKON_COMMIT="cf5ec588a4c22af2d7c3525873e26cbdafa656da"  # flatcar-master
+	CROS_WORKON_COMMIT="ae94b97be2b81b625d6af6654d3ed79078b50ff6"
 	KEYWORDS="amd64 arm64 x86"
 fi
 inherit cros-workon
@@ -114,6 +117,12 @@ pkg_setup() {
 
 src_unpack() {
 	cros-workon_src_unpack
+	pushd "${P}" >/dev/null || die
+	local GNULIB_URI="https://git.savannah.gnu.org/git/gnulib.git"
+	local GNULIB_REVISION=$(source bootstrap.conf >/dev/null; echo "${GNULIB_REVISION}")
+	git-r3_fetch "${GNULIB_URI}" "${GNULIB_REVISION}"
+	git-r3_checkout "${GNULIB_URI}" gnulib
+	popd >/dev/null || die
 	default
 }
 
@@ -122,10 +131,21 @@ src_prepare() {
 
 	sed -i -e /autoreconf/d autogen.sh || die
 
-	if [[ -n ${GRUB_AUTOGEN} ]]; then
+	if [[ -n ${GRUB_AUTOGEN} || -n ${GRUB_BOOTSTRAP} ]]; then
 		python_setup
-		bash autogen.sh || die
-		autopoint() { :; }
+	else
+		export PYTHON=true
+	fi
+
+	if [[ -n ${GRUB_BOOTSTRAP} ]]; then
+		eautopoint --force
+		# export GNULIB_URL="https://git.savannah.gnu.org/git/gnulib.git/"
+		AUTOPOINT=: AUTORECONF=: ./bootstrap || die
+	elif [[ -n ${GRUB_AUTOGEN} ]]; then
+		./autogen.sh || die
+	fi
+
+	if [[ -n ${GRUB_AUTORECONF} ]]; then
 		eautoreconf
 	fi
 }
