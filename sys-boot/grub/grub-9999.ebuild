@@ -6,7 +6,6 @@ EAPI=7
 CROS_WORKON_PROJECT="flatcar-linux/grub"
 CROS_WORKON_REPO="git://github.com"
 GRUB_AUTOGEN=1  # We start from Git, so always autogen.
-GRUB_BOOTSTRAP=1
 
 if [[ ${PV} == 9999 ]]; then
 	KEYWORDS="~amd64 ~arm64 ~x86"
@@ -123,17 +122,11 @@ src_prepare() {
 
 	sed -i -e /autoreconf/d autogen.sh || die
 
-	if [[ -n ${GRUB_AUTOGEN} || -n ${GRUB_BOOTSTRAP} ]]; then
+	if [[ -n ${GRUB_AUTOGEN} ]]; then
 		python_setup
-	else
-		export PYTHON=true
-	fi
-
-	if [[ -n ${GRUB_BOOTSTRAP} ]]; then
-		eautopoint --force
-		AUTOPOINT=: AUTORECONF=: ./bootstrap || die
-	elif [[ -n ${GRUB_AUTOGEN} ]]; then
 		bash autogen.sh || die
+		autopoint() { :; }
+		eautoreconf
 	fi
 }
 
