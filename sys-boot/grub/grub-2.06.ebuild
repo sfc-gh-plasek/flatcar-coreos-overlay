@@ -3,45 +3,25 @@
 
 EAPI=7
 
-if [[ ${PV} == 9999  ]]; then
-	GRUB_AUTORECONF=1
-	GRUB_BOOTSTRAP=1
-fi
+CROS_WORKON_PROJECT="flatcar-linux/grub"
+CROS_WORKON_REPO="git://github.com"
+GRUB_AUTOGEN=1  # We start from Git, so always autogen.
 
-PYTHON_COMPAT=( python{2_7,3_{6,7,8,9}} )
-WANT_LIBTOOL=none
-
-if [[ -n ${GRUB_AUTOGEN} || -n ${GRUB_BOOTSTRAP} ]]; then
-	inherit python-any-r1
-fi
-
-if [[ -n ${GRUB_AUTORECONF} ]]; then
-	inherit autotools
-fi
-
-inherit bash-completion-r1 flag-o-matic multibuild optfeature pax-utils toolchain-funcs
-
-if [[ ${PV} != 9999 ]]; then
-	if [[ ${PV} == *_alpha* || ${PV} == *_beta* || ${PV} == *_rc* ]]; then
-		# The quote style is to work with <=bash-4.2 and >=bash-4.3 #503860
-		MY_P=${P/_/'~'}
-		SRC_URI="https://alpha.gnu.org/gnu/${PN}/${MY_P}.tar.xz"
-		S=${WORKDIR}/${MY_P}
-	else
-		SRC_URI="mirror://gnu/${PN}/${P}.tar.xz"
-		S=${WORKDIR}/${P%_*}
-	fi
-	KEYWORDS="amd64 ~arm ~arm64 ~ia64 ppc ppc64 sparc x86"
+if [[ ${PV} == 9999 ]]; then
+	KEYWORDS="~amd64 ~arm64 ~x86"
 else
-	inherit git-r3
-	EGIT_REPO_URI="https://git.savannah.gnu.org/git/grub.git"
+	CROS_WORKON_COMMIT="ba40c9d246602646b22b0d190f260f2d98c0351b"  # flatcar-master
+	KEYWORDS="amd64 arm64 x86"
+fi
+inherit cros-workon
+
+if [[ -n ${GRUB_AUTOGEN} ]]; then
+	PYTHON_COMPAT=( python{3_6,3_7} )
+	WANT_LIBTOOL=none
+	inherit autotools python-any-r1
 fi
 
-PATCHES=(
-	"${FILESDIR}"/gfxpayload.patch
-	"${FILESDIR}"/grub-2.02_beta2-KERNEL_GLOBS.patch
-	"${FILESDIR}"/grub-2.06-test-words.patch
-)
+inherit autotools bash-completion-r1 flag-o-matic multibuild pax-utils toolchain-funcs versionator
 
 DEJAVU=dejavu-sans-ttf-2.37
 UNIFONT=unifont-12.1.02
@@ -57,6 +37,10 @@ SLOT="2/${PVR}"
 IUSE="device-mapper doc efiemu +fonts mount nls sdl test +themes truetype libzfs"
 
 GRUB_ALL_PLATFORMS=( coreboot efi-32 efi-64 emu ieee1275 loongson multiboot qemu qemu-mips pc uboot xen xen-32 xen-pvh )
+
+# Flatcar: Add arm64 to the list of platforms
+GRUB_ALL_PLATFORMS+=( arm64 )
+
 IUSE+=" ${GRUB_ALL_PLATFORMS[@]/#/grub_platforms_}"
 
 REQUIRED_USE="
@@ -73,19 +57,18 @@ BDEPEND="
 	sys-devel/bison
 	sys-apps/help2man
 	sys-apps/texinfo
-	fonts? (
-		media-libs/freetype:2
-		virtual/pkgconfig
-	)
+	grub_platforms_arm64? ( cross-aarch64-cros-linux-gnu/gcc )
 	test? (
 		app-admin/genromfs
 		app-arch/cpio
 		app-arch/lzop
-		app-emulation/qemu
+		grub_platforms_efi-64? ( app-emulation/qemu[qemu_softmmu_targets_x86_64] )
+		grub_platforms_pc? ( app-emulation/qemu[qemu_softmmu_targets_i386] )
+		grub_platforms_arm64? ( app-emulation/qemu[qemu_softmmu_targets_aarch64] )
 		dev-libs/libisoburn
 		sys-apps/miscfiles
 		sys-block/parted
-		sys-fs/squashfs-tools
+		sys-fs/squashfs-tools[lzo,xz]
 	)
 	themes? (
 		app-arch/unzip
@@ -104,8 +87,8 @@ DEPEND="
 	libzfs? ( sys-fs/zfs:= )
 	mount? ( sys-fs/fuse:0 )
 	truetype? ( media-libs/freetype:2= )
-	ppc? ( >=sys-apps/ibm-powerpc-utils-1.3.5 )
-	ppc64? ( >=sys-apps/ibm-powerpc-utils-1.3.5 )
+	ppc? ( sys-apps/ibm-powerpc-utils sys-apps/powerpc-utils )
+	ppc64? ( sys-apps/ibm-powerpc-utils sys-apps/powerpc-utils )
 "
 RDEPEND="${DEPEND}
 	kernel_linux? (
@@ -115,6 +98,7 @@ RDEPEND="${DEPEND}
 	!sys-boot/grub:0
 	nls? ( sys-devel/gettext )
 "
+DEPEND+=" !!=media-libs/freetype-2.5.4"
 
 RESTRICT="!test? ( test )"
 
@@ -128,15 +112,7 @@ pkg_setup() {
 }
 
 src_unpack() {
-	if [[ ${PV} == 9999 ]]; then
-		git-r3_src_unpack
-		pushd "${P}" >/dev/null || die
-		local GNULIB_URI="https://git.savannah.gnu.org/git/gnulib.git"
-		local GNULIB_REVISION=$(source bootstrap.conf >/dev/null; echo "${GNULIB_REVISION}")
-		git-r3_fetch "${GNULIB_URI}" "${GNULIB_REVISION}"
-		git-r3_checkout "${GNULIB_URI}" gnulib
-		popd >/dev/null || die
-	fi
+	cros-workon_src_unpack
 	default
 }
 
@@ -157,10 +133,6 @@ src_prepare() {
 	elif [[ -n ${GRUB_AUTOGEN} ]]; then
 		./autogen.sh || die
 	fi
-
-	if [[ -n ${GRUB_AUTORECONF} ]]; then
-		eautoreconf
-	fi
 }
 
 grub_do() {
@@ -178,6 +150,7 @@ grub_configure() {
 		efi*) platform=efi ;;
 		xen-pvh) platform=xen_pvh ;;
 		xen*) platform=xen ;;
+		arm64) platform=efi ;;
 		guessed) ;;
 		*) platform=${MULTIBUILD_VARIANT} ;;
 	esac
@@ -185,14 +158,16 @@ grub_configure() {
 	case ${MULTIBUILD_VARIANT} in
 		*-32)
 			if [[ ${CTARGET:-${CHOST}} == x86_64* ]]; then
-				local CTARGET=i386
+				local CTARGET=${CTARGET:-i386}
 			fi ;;
 		*-64)
 			if [[ ${CTARGET:-${CHOST}} == i?86* ]]; then
-				local CTARGET=x86_64
+				local CTARGET=${CTARGET:-x86_64}
 				local -x TARGET_CFLAGS="-Os -march=x86-64 ${TARGET_CFLAGS}"
 				local -x TARGET_CPPFLAGS="-march=x86-64 ${TARGET_CPPFLAGS}"
 			fi ;;
+		arm64)
+			local CTARGET=aarch64-cros-linux-gnu ;;
 	esac
 
 	local myeconfargs=(
