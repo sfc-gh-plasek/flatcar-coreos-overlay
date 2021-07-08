@@ -111,6 +111,10 @@ QA_PRESTRIPPED="usr/lib/grub/.*"
 QA_MULTILIB_PATHS="usr/lib/grub/.*"
 QA_WX_LOAD="usr/lib/grub/*"
 
+PATCHES=(
+	"${FILESDIR}/${PN}-2.02-binutils-2.36-x86-used-note.patch"
+)
+
 pkg_setup() {
 	:
 }
