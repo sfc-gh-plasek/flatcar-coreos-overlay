@@ -20,9 +20,6 @@ sys-libs/gdbm		berkdb
 # enable journal gateway, bootctl and container features
 sys-apps/systemd audit gnuefi importd http nat
 
-# epoll is needed for systemd-journal-remote to work. coreos/bugs#919
-net-libs/libmicrohttpd epoll
-
 sys-boot/syslinux       -custom-cflags
 
 # minimize risk removing unneeded patches and networking support
