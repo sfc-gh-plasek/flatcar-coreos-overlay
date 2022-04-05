@@ -87,7 +87,7 @@ DEPEND="${RDEPEND}
 		dev-libs/libisoburn
 		sys-apps/miscfiles
 		sys-block/parted
-		sys-fs/squashfs-tools[lzo,xz]
+		sys-fs/squashfs-tools[lzo,lzma]
 	)
 	themes? (
 		app-arch/unzip
