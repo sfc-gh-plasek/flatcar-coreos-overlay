@@ -1,0 +1,29 @@
+From d2f40f6d9d48c462d38ce43c777198621fb66508 Mon Sep 17 00:00:00 2001
+From: Mathieu Tortuyaux <mtortuyaux@microsoft.com>
+Date: Wed, 13 Jul 2022 16:53:12 +0200
+Subject: [PATCH 2/3] systemd: allow systemd-modules to get selinuxfs
+ attributes
+
+Jul 13 14:40:21 localhost audit[690]: AVC avc:  denied  { getattr } for  pid=690 comm="systemd-modules" name="/" dev="selinuxfs" ino=1 scontext=system_u:system_r:systemd_modules_load_t:s0 tcontext=system_u:object_r:security_t:s0 tclass=filesystem permissive=1
+
+Signed-off-by: Mathieu Tortuyaux <mtortuyaux@microsoft.com>
+---
+ policy/modules/system/systemd.te | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
+index d313431cb..96bb46597 100644
+--- refpolicy/policy/modules/system/systemd.te
++++ refpolicy/policy/modules/system/systemd.te
+@@ -840,6 +840,8 @@ modutils_read_module_deps(systemd_modules_load_t)
+ 
+ systemd_log_parse_environment(systemd_modules_load_t)
+ 
++selinux_getattr_fs(systemd_modules_load_t)
++
+ ########################################
+ #
+ # networkd local policy
+-- 
+2.35.1
+

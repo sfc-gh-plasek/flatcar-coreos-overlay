@@ -33,6 +33,26 @@ LICENSE="GPL-2"
 SLOT="0"
 S="${WORKDIR}/"
 
+# flatcar changes: apply a couple of
+# patches on the current policies
+PATCHES=(
+	"${FILESDIR}/sshd.patch"
+	"${FILESDIR}/init.patch"
+	"${FILESDIR}/locallogin.patch"
+	"${FILESDIR}/logging.patch"
+	# this patch is required to prevent `torcx-generator`
+	# to fail if SELinux is enforced in early boot.
+	# It can be removed once we drop torcx support.
+	"${FILESDIR}/unlabeled.patch"
+	# This is to allow pings from some IP address.
+	"${FILESDIR}/ping.patch"
+	# Allow systemd-tmpfiles to manage and relabel all files
+	"${FILESDIR}/systemd-relabel.patch"
+	"${FILESDIR}/0001-systemd-allow-systemd-networkd-to-read-etc-machine-i.patch"
+	"${FILESDIR}/0002-systemd-allow-systemd-modules-to-get-selinuxfs-attri.patch"
+	"${FILESDIR}/0003-systemd-allow-systemd-modules-to-get-proc-attributes.patch"
+)
+
 # Code entirely copied from selinux-eclass (cannot inherit due to dependency on
 # itself), when reworked reinclude it. Only postinstall (where -b base.pp is
 # added) needs to remain then.
@@ -53,7 +73,10 @@ src_prepare() {
 		eapply -p0 "${WORKDIR}/0001-full-patch-against-stable-release.patch"
 	fi
 
+	eapply -p0 "${PATCHES[@]}"
 	eapply_user
+
+	sed -i "s/systemd_tmpfiles_manage_all = false/systemd_tmpfiles_manage_all = true/" "${S}/refpolicy/policy/booleans.conf" || die
 
 	# Collect only those files needed for this particular module
 	for i in ${MODS}; do

@@ -1,0 +1,28 @@
+From d7c0086573a0f6931264418ec59b447aa397d52e Mon Sep 17 00:00:00 2001
+From: Mathieu Tortuyaux <mtortuyaux@microsoft.com>
+Date: Wed, 13 Jul 2022 16:54:11 +0200
+Subject: [PATCH 3/3] systemd: allow systemd-modules to get proc attributes
+
+Jul 13 14:40:21 localhost audit[690]: AVC avc:  denied  { getattr } for  pid=690 comm="systemd-modules" name="/" dev="proc" ino=1 scontext=system_u:system_r:systemd_modules_load_t:s0 tcontext=system_u:object_r:proc_t:s0 tclass=filesystem permissive=1
+
+Signed-off-by: Mathieu Tortuyaux <mtortuyaux@microsoft.com>
+---
+ policy/modules/system/systemd.te | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/policy/modules/system/systemd.te b/policy/modules/system/systemd.te
+index 96bb46597..0c624be6e 100644
+--- refpolicy/policy/modules/system/systemd.te
++++ refpolicy/policy/modules/system/systemd.te
+@@ -842,6 +842,8 @@ systemd_log_parse_environment(systemd_modules_load_t)
+ 
+ selinux_getattr_fs(systemd_modules_load_t)
+ 
++kernel_getattr_proc(systemd_modules_load_t)
++
+ ########################################
+ #
+ # networkd local policy
+-- 
+2.35.1
+
