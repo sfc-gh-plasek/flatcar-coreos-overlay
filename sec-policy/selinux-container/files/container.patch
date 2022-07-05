@@ -1,0 +1,12 @@
+diff --git a/policy/modules/services/container.fc b/policy/modules/services/container.fc
+index 63f1537df..0aace6047 100644
+--- a/services/container.fc
++++ b/services/container.fc
+@@ -79,3 +79,7 @@ HOME_DIR/\.local/share/docker/volumes(/.*)?		gen_context(system_u:object_r:conta
+ 
+ /var/log/containers(/.*)?		gen_context(system_u:object_r:container_log_t,s0)
+ /var/log/pods(/.*)?		gen_context(system_u:object_r:container_log_t,s0)
++
++# Flatcar patch
++# Run Torcx binary with container_engine_exec_t
++/run/torcx/bin(/.*)? -- gen_context(system_u:object_r:container_engine_exec_t,s0)
