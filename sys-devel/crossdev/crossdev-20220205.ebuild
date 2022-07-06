@@ -27,6 +27,11 @@ RDEPEND="
 "
 BDEPEND="app-arch/xz-utils"
 
+PATCHES=(
+	"${FILESDIR}/0001-crossdev-Take-gdb-variables-into-account-too.patch"
+	"${FILESDIR}/0002-crossdev-Fix-matching-of-stable-keywords.patch"
+)
+
 src_install() {
 	default
 

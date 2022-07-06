@@ -1,0 +1,42 @@
+From d73312708d51911d14495fb5039ef75d65960598 Mon Sep 17 00:00:00 2001
+From: Krzesimir Nowak <knowak@microsoft.com>
+Date: Wed, 6 Jul 2022 21:43:58 +0200
+Subject: [PATCH 1/2] crossdev: Take gdb variables into account too
+
+---
+ crossdev | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/crossdev b/crossdev
+index e2e01e8..ec10102 100755
+--- a/crossdev
++++ b/crossdev
+@@ -883,6 +883,7 @@ BVER=${BVER:-${DEFAULT_VER}}
+ GVER=${GVER:-${DEFAULT_VER}}
+ KVER=${KVER:-${DEFAULT_VER}}
+ LVER=${LVER:-${DEFAULT_VER}}
++DVER=${LVER:-${DEFAULT_VER}}
+ STAGE=${STAGE:-${STAGE_DEFAULT}}
+ [[ -z ${CTARGET} ]] && usage 1
+ for with in HEADERS ; do
+@@ -970,7 +971,7 @@ done
+ 
+ # grab user settings
+ d="${CONFIGROOT}/crossdev/${CTARGET}"
+-for v in MULTILIB_ABIS USE BVER GVER KVER LVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
++for v in MULTILIB_ABIS USE BVER GVER KVER LVER DVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
+ 	if [[ -e ${d}/${v} ]] ; then
+ 		# yes, quotes are needed in this instance (export $var="...")
+ 		export ${v}="$(<"${d}"/${v})"
+@@ -1323,7 +1324,7 @@ set_metadata() {
+ 	fi
+ 
+ 	# build up a list of possible repos where we can pull from
+-	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
++	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
+ 		[[ -z ${d} ]] && continue
+ 
+ 		name=
+-- 
+2.25.1
+

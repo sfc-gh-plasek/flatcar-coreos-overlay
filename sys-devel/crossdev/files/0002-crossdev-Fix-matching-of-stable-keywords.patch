@@ -1,0 +1,25 @@
+From 5f5aa397dc577178aa032edb5210360d3d3daa10 Mon Sep 17 00:00:00 2001
+From: Krzesimir Nowak <knowak@microsoft.com>
+Date: Wed, 6 Jul 2022 21:44:21 +0200
+Subject: [PATCH 2/2] crossdev: Fix matching of stable keywords
+
+---
+ crossdev | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crossdev b/crossdev
+index ec10102..b162b68 100755
+--- a/crossdev
++++ b/crossdev
+@@ -1202,7 +1202,7 @@ set_links() {
+ 
+ 			case "${LVER}" in
+ 				"[stable]")
+-					search_kw_string="^[~]${TARCH}"
++					search_kw_string="[^~]${TARCH}"
+ 					;;
+ 				*)
+ 					search_kw_string="${TARCH}"
+-- 
+2.25.1
+
