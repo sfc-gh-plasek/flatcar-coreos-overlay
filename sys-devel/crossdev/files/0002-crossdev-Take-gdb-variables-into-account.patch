@@ -1,0 +1,37 @@
+From ce5394791cc62631c702e4dc7d76dbcd0f9b5a27 Mon Sep 17 00:00:00 2001
+From: Krzesimir Nowak <knowak@microsoft.com>
+Date: Thu, 7 Jul 2022 14:58:55 +0200
+Subject: [PATCH 2/3] crossdev: Take gdb variables into account
+
+When restoring user settings and when figuring out the list of repos.
+
+Signed-off-by: Krzesimir Nowak <knowak@microsoft.com>
+---
+ crossdev | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/crossdev b/crossdev
+index 8e29e1b..1eae602 100755
+--- a/crossdev
++++ b/crossdev
+@@ -988,7 +988,7 @@ done
+ 
+ # grab user settings
+ d="${CONFIGROOT}/crossdev/${CTARGET}"
+-for v in MULTILIB_ABIS USE BVER GVER KVER LVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
++for v in MULTILIB_ABIS USE BVER GVER KVER LVER DVER STAGE CFLAGS LDFLAGS ASFLAGS ; do
+ 	if [[ -e ${d}/${v} ]] ; then
+ 		# yes, quotes are needed in this instance (export $var="...")
+ 		export ${v}="$(<"${d}"/${v})"
+@@ -1347,7 +1347,7 @@ set_metadata() {
+ 	fi
+ 
+ 	# build up a list of possible repos where we can pull from
+-	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
++	for d in "${BOVL}" "${GOVL}" "${KOVL}" "${LOVL}" "${DOVL}" ${SEARCH_OVERLAYS} "${MAIN_REPO_PATH}" ; do
+ 		[[ -z ${d} ]] && continue
+ 
+ 		name=
+-- 
+2.25.1
+

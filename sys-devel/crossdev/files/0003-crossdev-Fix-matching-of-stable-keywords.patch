@@ -1,0 +1,29 @@
+From ea77397f162ea2995223214704d11fae582155f1 Mon Sep 17 00:00:00 2001
+From: Krzesimir Nowak <knowak@microsoft.com>
+Date: Wed, 6 Jul 2022 21:44:21 +0200
+Subject: [PATCH 3/3] crossdev: Fix matching of stable keywords
+
+Not sure how this worked before - in our case emerge couldn't find a
+matching ebuild any more when requesting stable versions.
+
+Signed-off-by: Krzesimir Nowak <knowak@microsoft.com>
+---
+ crossdev | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/crossdev b/crossdev
+index 1eae602..24a1e89 100755
+--- a/crossdev
++++ b/crossdev
+@@ -1219,7 +1219,7 @@ set_links() {
+ 
+ 			case "${LVER}" in
+ 				"[stable]")
+-					search_kw_string="^[~]${TARCH}"
++					search_kw_string="[^~]${TARCH}"
+ 					;;
+ 				*)
+ 					search_kw_string="${TARCH}"
+-- 
+2.25.1
+

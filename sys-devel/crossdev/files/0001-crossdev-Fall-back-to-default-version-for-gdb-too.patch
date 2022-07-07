@@ -1,0 +1,28 @@
+From bb653b3736da3daa6bf005bf2820b1f89a81fe4b Mon Sep 17 00:00:00 2001
+From: Krzesimir Nowak <knowak@microsoft.com>
+Date: Thu, 7 Jul 2022 14:56:57 +0200
+Subject: [PATCH 1/3] crossdev: Fall back to default version for gdb too
+
+Passing `--stable` didn't affect the version of built GDB, thus we
+needed to pass `--gdb '[stable]'` on our own.
+
+Signed-off-by: Krzesimir Nowak <knowak@microsoft.com>
+---
+ crossdev | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/crossdev b/crossdev
+index a7566ba..8e29e1b 100755
+--- a/crossdev
++++ b/crossdev
+@@ -900,6 +900,7 @@ BVER=${BVER:-${DEFAULT_VER}}
+ GVER=${GVER:-${DEFAULT_VER}}
+ KVER=${KVER:-${DEFAULT_VER}}
+ LVER=${LVER:-${DEFAULT_VER}}
++DVER=${LVER:-${DEFAULT_VER}}
+ STAGE=${STAGE:-${STAGE_DEFAULT}}
+ [[ -z ${CTARGET} ]] && usage 1
+ for with in HEADERS ; do
+-- 
+2.25.1
+
